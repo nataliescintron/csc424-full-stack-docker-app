@@ -1,14 +1,29 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lab Portal</title>
-    <script type="module" crossorigin src="/assets/index-C3uEbyDA.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-tn0RQdqM.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
-</html>
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-container
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    # volumes:
+    # - type: bind
+    #   source: ./nginx/nginx.conf
+    #   target: /etc/nginx/nginx.conf
+    depends_on:
+      - frontend
+      - backend
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend-container
+    # no ports: needed — nginx handles routing
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend-container
+    # no ports: needed — nginx handles routing
