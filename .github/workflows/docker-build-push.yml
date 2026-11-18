@@ -11,16 +11,39 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Short SHA
+        id: vars
+        run: echo "sha=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_OUTPUT
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push nginx image
+      - name: Build and push frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/frontend:${{ steps.vars.outputs.sha }}
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/backend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/backend:${{ steps.vars.outputs.sha }}
+
+      - name: Build and push nginx
         uses: docker/build-push-action@v5
         with:
           context: ./nginx
-          file: ./nginx/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/project2-nginx:latest
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/nginx:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/nginx:${{ steps.vars.outputs.sha }}
